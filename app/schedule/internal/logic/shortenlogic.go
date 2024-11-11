@@ -105,17 +105,13 @@ func (l *ShortenLogic) Shorten(req *types.ShortenReq) (resp *types.ShortenResp, 
 	}
 	////////////////////////////
 	tStatus := ""
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		time.Sleep(2 * time.Second)
 		labelSelector := "app.kubernetes.io/instance=" + req.Release
 
 		podName, podStatus, err := getPodStatus(namespace, labelSelector)
 		log15.Info("检测pod执行状态", "err", err, "podName", podName, "podStatus", podStatus)
-		if podStatus == "Running" && tStatus == "Running" {
-			break
-		} else {
-			tStatus = podStatus
-		}
+		tStatus = podStatus
 	}
 
 	////////////////////////
