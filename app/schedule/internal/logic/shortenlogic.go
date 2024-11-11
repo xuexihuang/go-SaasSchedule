@@ -55,7 +55,7 @@ func (l *ShortenLogic) Shorten(req *types.ShortenReq) (resp *types.ShortenResp, 
 	namespace := req.Name
 
 	// 执行 helm install
-	output, err := installChart(releaseName, chartPath, namespace, "-f", "config.yaml")
+	output, err := installChart(releaseName, chartPath, namespace, "-f", "/data/github/helm-charts/testweb/config.yaml")
 	if err != nil {
 		log15.Error("执行helm输出错误", "err", err, "out", output)
 	} else {
