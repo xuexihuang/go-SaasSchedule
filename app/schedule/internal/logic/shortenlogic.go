@@ -3,9 +3,11 @@ package logic
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	log15 "github.com/xuexihuang/new_log15"
 	"os/exec"
+	"time"
 
 	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/svc"
 	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/types"
@@ -46,6 +48,47 @@ func installChart(releaseName, chartPath string, namespace string, args ...strin
 	}
 	return stdout.String(), nil
 }
+
+// PodStatus 用于解析命令返回的 Pod 状态
+type PodStatus struct {
+	Items []struct {
+		Metadata struct {
+			Name string `json:"name"`
+		} `json:"metadata"`
+		Status struct {
+			Phase string `json:"phase"`
+		} `json:"status"`
+	} `json:"items"`
+}
+
+// getPodStatus 获取特定命名空间和标签的第一个 Pod 名称及状态
+func getPodStatus(namespace, labelSelector string) (string, string, error) {
+	// 构建 kubectl 命令
+	cmd := exec.Command("kubectl", "get", "pods", "--namespace", namespace, "-l", labelSelector, "-o", "json")
+
+	// 获取命令输出
+	output, err := cmd.Output()
+	if err != nil {
+		return "", "", fmt.Errorf("failed to execute kubectl command: %v", err)
+	}
+
+	// 解析输出 JSON
+	var podStatus PodStatus
+	if err := json.Unmarshal(output, &podStatus); err != nil {
+		return "", "", fmt.Errorf("failed to parse JSON output: %v", err)
+	}
+
+	// 检查是否有 Pod 返回
+	if len(podStatus.Items) == 0 {
+		return "", "", fmt.Errorf("no pods found with the specified label selector")
+	}
+
+	// 获取第一个 Pod 的名称和状态
+	podName := podStatus.Items[0].Metadata.Name
+	podPhase := podStatus.Items[0].Status.Phase
+	return podName, podPhase, nil
+}
+
 func (l *ShortenLogic) Shorten(req *types.ShortenReq) (resp *types.ShortenResp, err error) {
 
 	log15.Info("进入shorten调用", "req", req)
@@ -61,5 +104,12 @@ func (l *ShortenLogic) Shorten(req *types.ShortenReq) (resp *types.ShortenResp, 
 	} else {
 		log15.Info("执行helm输出正常", "out", output)
 	}
+	////////////////////////////
+	time.Sleep(2 * time.Second)
+	labelSelector := "app.kubernetes.io/instance=" + req.Release
+
+	podName, podStatus, err := getPodStatus(namespace, labelSelector)
+	log15.Info("检测pod执行状态", "err", err, "podName", podName, "podStatus", podStatus)
+	////////////////////////
 	return
 }
