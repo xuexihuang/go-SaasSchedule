@@ -1,0 +1,15 @@
+type (
+	shortenReq {
+		Release string `form:"release"`
+		Name    string `form:"name"`
+	}
+	shortenResp {
+		shorten string `json:"shorten"`
+	}
+)
+
+service schedule {
+	@handler ShortenHandler
+	get /shorten (shortenReq) returns (shortenResp)
+}
+
