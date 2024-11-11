@@ -31,6 +31,7 @@ func installChart(releaseName, chartPath string, namespace string, args ...strin
 	cmdArgs := append([]string{"install", releaseName, chartPath, "--namespace", namespace}, args...)
 	cmd := exec.Command("helm", cmdArgs...)
 
+	log15.Info("执行命令", "cmdArgs", cmdArgs)
 	// 用于存储命令的输出
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
@@ -50,7 +51,7 @@ func (l *ShortenLogic) Shorten(req *types.ShortenReq) (resp *types.ShortenResp, 
 	log15.Info("进入shorten调用", "req", req)
 	// 示例：安装 chart
 	releaseName := req.Release
-	chartPath := "."
+	chartPath := "/data/github/helm-charts/testweb/"
 	namespace := req.Name
 
 	// 执行 helm install
