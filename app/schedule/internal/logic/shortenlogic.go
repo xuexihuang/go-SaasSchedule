@@ -1,14 +1,16 @@
 package logic
 
 import (
+	"bufio"
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/svc"
 	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/types"
 	log15 "github.com/xuexihuang/new_log15"
 	"os/exec"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/zeromicro/go-zero/core/logx"
@@ -48,22 +50,10 @@ func installChart(releaseName, chartPath string, namespace string, args ...strin
 	return stdout.String(), nil
 }
 
-// PodStatus 用于解析命令返回的 Pod 状态
-type PodStatus struct {
-	Items []struct {
-		Metadata struct {
-			Name string `json:"name"`
-		} `json:"metadata"`
-		Status struct {
-			Phase string `json:"phase"`
-		} `json:"status"`
-	} `json:"items"`
-}
-
-// getPodStatus 获取特定命名空间和标签的第一个 Pod 名称及状态
+// getPodStatus 通过命令行输出获取特定命名空间和标签的第一个 Pod 名称及状态
 func getPodStatus(namespace, labelSelector string) (string, string, error) {
-	// 构建 kubectl 命令
-	cmd := exec.Command("kubectl", "get", "pods", "--namespace", namespace, "-l", labelSelector, "-o", "json")
+	// 构建 kubectl 命令，不使用 JSON 输出
+	cmd := exec.Command("kubectl", "get", "pods", "--namespace", namespace, "-l", labelSelector)
 
 	// 获取命令输出
 	output, err := cmd.Output()
@@ -71,21 +61,29 @@ func getPodStatus(namespace, labelSelector string) (string, string, error) {
 		return "", "", fmt.Errorf("failed to execute kubectl command: %v", err)
 	}
 
-	// 解析输出 JSON
-	var podStatus PodStatus
-	if err := json.Unmarshal(output, &podStatus); err != nil {
-		return "", "", fmt.Errorf("failed to parse JSON output: %v", err)
+	// 使用 bufio.Scanner 逐行解析输出
+	scanner := bufio.NewScanner(strings.NewReader(string(output)))
+	// 跳过第一行表头
+	scanner.Scan()
+
+	// 正则表达式匹配 Pod 名称和状态
+	re := regexp.MustCompile(`^(\S+)\s+\S+\s+(\S+)`)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		matches := re.FindStringSubmatch(line)
+		if len(matches) == 3 {
+			podName := matches[1]
+			podPhase := matches[2]
+			return podName, podPhase, nil
+		}
 	}
 
-	// 检查是否有 Pod 返回
-	if len(podStatus.Items) == 0 {
-		return "", "", fmt.Errorf("no pods found with the specified label selector")
+	if err := scanner.Err(); err != nil {
+		return "", "", fmt.Errorf("failed to read command output: %v", err)
 	}
 
-	// 获取第一个 Pod 的名称和状态
-	podName := podStatus.Items[0].Metadata.Name
-	podPhase := podStatus.Items[0].Status.Phase
-	return podName, podPhase, nil
+	return "", "", fmt.Errorf("no pods found with the specified label selector")
 }
 
 func (l *ShortenLogic) Shorten(req *types.ShortenReq) (resp *types.ShortenResp, err error) {
