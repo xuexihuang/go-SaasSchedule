@@ -5,12 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/svc"
+	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/types"
 	log15 "github.com/xuexihuang/new_log15"
 	"os/exec"
 	"time"
-
-	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/svc"
-	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/types"
 
 	"github.com/zeromicro/go-zero/core/logx"
 )
@@ -105,11 +104,20 @@ func (l *ShortenLogic) Shorten(req *types.ShortenReq) (resp *types.ShortenResp, 
 		log15.Info("执行helm输出正常", "out", output)
 	}
 	////////////////////////////
-	time.Sleep(2 * time.Second)
-	labelSelector := "app.kubernetes.io/instance=" + req.Release
+	tStatus := ""
+	for i := 0; i < 5; i++ {
+		time.Sleep(2 * time.Second)
+		labelSelector := "app.kubernetes.io/instance=" + req.Release
 
-	podName, podStatus, err := getPodStatus(namespace, labelSelector)
-	log15.Info("检测pod执行状态", "err", err, "podName", podName, "podStatus", podStatus)
+		podName, podStatus, err := getPodStatus(namespace, labelSelector)
+		log15.Info("检测pod执行状态", "err", err, "podName", podName, "podStatus", podStatus)
+		if podStatus == "Running" && tStatus == "Running" {
+			break
+		} else {
+			tStatus = podStatus
+		}
+	}
+
 	////////////////////////
-	return
+	return &types.ShortenResp{Shorten: tStatus}, nil
 }
