@@ -17,6 +17,11 @@ func RegisterHandlers(server *rest.Server, serverCtx *svc.ServiceContext) {
 				Path:    "/shorten",
 				Handler: ShortenHandler(serverCtx),
 			},
+			{
+				Method:  http.MethodPost,
+				Path:    "/startTenantSchedule",
+				Handler: StartTenantScheduleHandler(serverCtx),
+			},
 		},
 	)
 }

@@ -4,12 +4,25 @@ type (
 		Name    string `form:"name"`
 	}
 	shortenResp {
-		shorten string `json:"shorten"`
+		Shorten string `json:"shorten"`
+	}
+	startTenantScheduleReq {
+		TenantId     string `json:"tenantId"`
+		ProjectId    int64  `json:"projectId"`
+		ImageTag     string `json:"imageTag"`
+		ChartVersion string `json:"chartVersion"`
+		Domain       string `json:"domain"`
+	}
+	startTenantScheduleResp {
+		JobId int64 `json:"jobId"`
 	}
 )
 
 service schedule {
 	@handler ShortenHandler
 	get /shorten (shortenReq) returns (shortenResp)
+
+	@handler StartTenantSchedule
+	post /startTenantSchedule (startTenantScheduleReq) returns (startTenantScheduleResp)
 }
 

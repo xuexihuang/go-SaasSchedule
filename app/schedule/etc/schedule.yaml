@@ -2,3 +2,7 @@ Name: schedule
 Host: 0.0.0.0
 Port: 8888
 Timeout: 60000
+Mode: dev
+Timezone: America/Sao_Paulo
+Mysql:
+  DataSource: root:123456@tcp(192.168.124.69:30306)/saas_schedule?charset=utf8mb4&parseTime=true

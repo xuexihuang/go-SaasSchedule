@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/xuexihuang/go-SaasSchedule/pkg/data"
 
 	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/config"
 	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/handler"
@@ -19,6 +20,11 @@ func main() {
 
 	var c config.Config
 	conf.MustLoad(*configFile, &c)
+	err := data.InitMysql(c.Mysql.DataSource, c.Mode)
+	if err != nil {
+		fmt.Println("InitMysql error!:", err)
+		return
+	}
 
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()

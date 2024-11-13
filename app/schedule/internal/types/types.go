@@ -9,3 +9,15 @@ type ShortenReq struct {
 type ShortenResp struct {
 	Shorten string `json:"shorten"`
 }
+
+type StartTenantScheduleReq struct {
+	TenantId     string `json:"tenantId"`
+	ProjectId    int64  `json:"projectId"`
+	ImageTag     string `json:"imageTag"`
+	ChartVersion string `json:"chartVersion"`
+	Domain       string `json:"domain"`
+}
+
+type StartTenantScheduleResp struct {
+	JobId int64 `json:"jobId"`
+}
