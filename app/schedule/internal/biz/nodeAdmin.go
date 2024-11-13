@@ -19,7 +19,7 @@ func (a *AdminNode) generateSetCommand(domain string, imageTag string, tenantId 
 	var setStr string
 	sql := a.generateInitSql()
 	setStr = "sqlConfig.sql=" + sql
-	mysqlUrl := fmt.Sprintf("root:123456@tcp(mysql.kube-public.svc.cluster.local:3306)/%s?charset=utf8mb4&parseTime=true", tenantId)
+	mysqlUrl := fmt.Sprintf("root123456@tcp(mysql.kube-public.svc.cluster.local3306)%s", tenantId)
 	setStr = setStr + ",image.tag=" + imageTag + ",config.Mysql.Database=" + mysqlUrl
 	ret = append(ret, setStr)
 	log15.Info("generateSetCommand", "ret", ret)
