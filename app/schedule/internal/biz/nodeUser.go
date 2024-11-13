@@ -1,6 +1,9 @@
 package biz
 
-import "fmt"
+import (
+	"fmt"
+	log15 "github.com/xuexihuang/new_log15"
+)
 
 type UserNode struct {
 	*NodeBase
@@ -14,10 +17,11 @@ func (u *UserNode) generateSetCommand(domain string, imageTag string, tenantId s
 	ret := []string{"--set"}
 	var setStr string
 	sql := u.generateInitSql()
-	setStr = "sqlConfig.userSql=" + sql
-	mysqlUrl := fmt.Sprintf("root:123456@tcp(mysql.kube-public.svc.cluster.local:3306)/%s?charset=utf8mb4&parseTime=true", tenantId)
+	setStr = "sqlConfig.sql=" + sql
+	mysqlUrl := fmt.Sprintf("root123456@tcp(mysql.kube-public.svc.cluster.local3306)%s", tenantId)
 	setStr = setStr + ",image.tag=" + imageTag + ",config.Mysql.Database=" + mysqlUrl
 	ret = append(ret, setStr)
+	log15.Info("generateSetCommand", "ret", ret)
 	return ret, nil
 
 }
