@@ -185,7 +185,7 @@ func (n *NodeBase) RunSchedule(moduleId int64, jobId int64, chartUrl string, cha
 		return err
 	}
 	var successCount = 0
-	for i := 0; i < 8; i++ {
+	for i := 0; i < 18; i++ {
 		time.Sleep(2 * time.Second)
 		podName, status, err := n.checkChartReleaseStatus(tenantId)
 		log15.Info("checkChartReleaseStatus", "podName", podName, "status", status, "err", err)
