@@ -25,6 +25,7 @@ func main() {
 		fmt.Println("InitMysql error!:", err)
 		return
 	}
+	fmt.Println("initmysql success==", c.Mysql.DataSource)
 
 	server := rest.MustNewServer(c.RestConf)
 	defer server.Stop()

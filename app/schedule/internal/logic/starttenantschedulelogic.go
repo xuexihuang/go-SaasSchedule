@@ -36,6 +36,7 @@ func (l *StartTenantScheduleLogic) StartTenantSchedule(req *types.StartTenantSch
 	if err != nil {
 		return nil, errors.New("CreateScheduleJob error")
 	}
+	log15.Info("获取项目模块详情", "modules", modules, "chartUrl", chartUrl, "err", err, "jobId", jobId)
 	go func() { //异步进行自动化部署
 		for _, v := range modules {
 			nodeInter := biz.NewJobNodeInter(v.Name, req.ChartVersion, l.svcCtx)

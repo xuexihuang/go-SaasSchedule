@@ -168,22 +168,27 @@ func (n *NodeBase) createK8sNamespace(tenantId string) error {
 }
 func (n *NodeBase) RunSchedule(moduleId int64, jobId int64, chartUrl string, chartVersion string, domain string, imageTag string, tenantId string) error {
 
+	log15.Info("RunSchedule", "moduledId", moduleId, "jobId", jobId, "chartUrl", chartUrl, "charversion", chartVersion, "domain", domain, "imageTag", imageTag, "tenantId", tenantId)
 	chartPath, err := n.downChart(jobId, chartUrl, chartVersion)
+	log15.Info("downChart", "chartPath", chartPath, "err", err)
 	if err != nil {
 		return err
 	}
 	err = n.createK8sNamespace(tenantId)
+	log15.Info("createK8sNamespace", "err", err)
 	if err != nil {
 		return err
 	}
 	recordId, err := n.installChart(domain, imageTag, tenantId, chartPath, moduleId, jobId)
+	log15.Info("installChart", "recordId", recordId, "err", err)
 	if err != nil {
 		return err
 	}
 	var successCount = 0
 	for i := 0; i < 8; i++ {
 		time.Sleep(2 * time.Second)
-		_, status, err := n.checkChartReleaseStatus(tenantId)
+		podName, status, err := n.checkChartReleaseStatus(tenantId)
+		log15.Info("checkChartReleaseStatus", "podName", podName, "status", status, "err", err)
 		if err == nil && status == "Running" {
 			successCount++
 		} else {
@@ -194,10 +199,12 @@ func (n *NodeBase) RunSchedule(moduleId int64, jobId int64, chartUrl string, cha
 		}
 	}
 	if successCount >= 3 {
-		_ = n.UpdateRecordStatus(recordId, "Running")
+		err = n.UpdateRecordStatus(recordId, "Running")
+		log15.Info("UpdateRecordStatus", "err", err)
 		return nil
 	} else {
-		_ = n.UpdateRecordStatus(recordId, "Error")
+		err = n.UpdateRecordStatus(recordId, "Error")
+		log15.Info("UpdateRecordStatus", "err", err)
 		return errors.New("ChartReleaseStatus error")
 	}
 
