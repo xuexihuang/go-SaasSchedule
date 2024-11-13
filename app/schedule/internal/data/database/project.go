@@ -5,7 +5,7 @@ type (
 		Id        int64  `xorm:"pk autoincr 'id'"`
 		ModuleId  int64  `xorm:"module_id"`
 		JobId     int64  `xorm:"job_id"`
-		Status    int64  `xorm:"job_id"`
+		Status    int64  `xorm:"status"`
 		ErrMsg    string `xorm:"err_msg"`
 		StartedAt int64  `xorm:"started_at"`
 		EndedAt   int64  `xorm:"ended_at"`
