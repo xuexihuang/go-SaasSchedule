@@ -67,7 +67,7 @@ func (n *NodeBase) installChart(domain string, imageTag string, tenantId string,
 		return 0, err
 	}
 	// 创建 helm install 命令
-	cmdArgs := append([]string{"install", n.moduleName, ".", "-f", "config.yaml", "--namespace", tenantId}, args...)
+	cmdArgs := append([]string{"install", n.moduleName, n.moduleName + "/", "-f", n.moduleName + "/config.yaml", "--namespace", tenantId}, args...)
 	cmd := exec.Command("helm", cmdArgs...)
 	// 设置当前工作目录为 /data/gitCharts
 	cmd.Dir = chartPath

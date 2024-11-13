@@ -12,5 +12,5 @@ func NewProjectDomain() *ProjectDomain {
 	return &ProjectDomain{}
 }
 func (p *ProjectDomain) Get(id int64) ([]Module, string, error) {
-	return []Module{{Id: 1, Name: "user", Sort: 1}, {Id: 2, Name: "admin", Sort: 2}}, "", nil
+	return []Module{{Id: 1, Name: "user", Sort: 1}, {Id: 2, Name: "admin", Sort: 2}}, "git@github.com:xuexihuang/saas-chart.git", nil
 }
