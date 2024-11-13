@@ -167,11 +167,31 @@ func (n *NodeBase) downChart(jobId int64, chartUrl string, chartVersion string) 
 }
 func (n *NodeBase) createK8sNamespace(tenantId string) error {
 
-	// 构建 kubectl 命令，不使用 JSON 输出
-	cmd := exec.Command("kubectl", "create", "ns", tenantId)
-	// 获取命令输出
-	_, err := cmd.Output()
-	return err
+	// 先执行 `kubectl get ns` 命令
+	cmd := exec.Command("kubectl", "get", "ns")
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("获取命名空间列表失败: %v", err)
+	}
+
+	// 使用正则表达式检查是否存在相同的 tenantId
+	regex := regexp.MustCompile(fmt.Sprintf(`\b%s\b`, regexp.QuoteMeta(tenantId)))
+	if regex.Match(out.Bytes()) {
+		fmt.Printf("命名空间 %s 已存在，跳过创建。\n", tenantId)
+		return nil
+	}
+
+	// 如果不存在，则创建命名空间
+	cmd = exec.Command("kubectl", "create", "ns", tenantId)
+	_, err = cmd.Output()
+	if err != nil {
+		return fmt.Errorf("创建命名空间 %s 失败: %v", tenantId, err)
+	}
+
+	fmt.Printf("命名空间 %s 创建成功。\n", tenantId)
+	return nil
 }
 func (n *NodeBase) RunSchedule(moduleId int64, jobId int64, chartUrl string, chartVersion string, domain string, imageTag string, tenantId string) error {
 
