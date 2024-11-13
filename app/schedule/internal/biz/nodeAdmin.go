@@ -11,7 +11,7 @@ type AdminNode struct {
 
 func (a *AdminNode) generateInitSql() string {
 
-	return `CREATE TABLE admin (id INT PRIMARY KEY,name VARCHAR(100));`
+	return `CREATE TABLE admin `
 }
 func (a *AdminNode) generateSetCommand(domain string, imageTag string, tenantId string) ([]string, error) {
 
@@ -19,7 +19,7 @@ func (a *AdminNode) generateSetCommand(domain string, imageTag string, tenantId 
 	var setStr string
 	sql := a.generateInitSql()
 	setStr = "sqlConfig.sql=" + sql
-	mysqlUrl := fmt.Sprintf("root123456@tcp(mysql.kube-public.svc.cluster.local3306)%s", tenantId)
+	mysqlUrl := fmt.Sprintf("root123456tcpmysql.kube-public.svc.cluster.local3306-%s", tenantId)
 	setStr = setStr + ",image.tag=" + imageTag + ",config.Mysql.Database=" + mysqlUrl
 	ret = append(ret, setStr)
 	log15.Info("generateSetCommand", "ret", ret)
