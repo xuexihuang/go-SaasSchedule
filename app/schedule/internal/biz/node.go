@@ -30,13 +30,13 @@ func NewJobNodeInter(moduleName string, chartVersion string, svcCtx *svc.Service
 
 	var ret NodeInter
 	if moduleName == "user" {
-		data := &UserNode{}
+		data := &UserNode{NodeBase: &NodeBase{}}
 		data.moduleName = "user"
 		data.nodeInter = data
 		data.jobNodeRecordRepo = svcCtx.JobNodeRecord
 		ret = data
 	} else if moduleName == "admin" {
-		data := &AdminNode{}
+		data := &AdminNode{NodeBase: &NodeBase{}}
 		data.moduleName = "admin"
 		data.jobNodeRecordRepo = svcCtx.JobNodeRecord
 		data.nodeInter = data
