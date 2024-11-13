@@ -137,12 +137,19 @@ func (n *NodeBase) downChart(jobId int64, chartUrl string, chartVersion string) 
 	downloadDir := fmt.Sprintf("/data/gitCharts/%d", jobId)
 
 	// 检查目标目录是否存在，如果不存在则创建
-	if _, err := os.Stat(downloadDir); os.IsNotExist(err) {
+	_, err := os.Stat(downloadDir)
+	if os.IsNotExist(err) {
 		fmt.Println("Directory does not exist, creating it...")
 		err := os.MkdirAll(downloadDir, os.ModePerm)
 		if err != nil {
 			return "", fmt.Errorf("failed to create directory %s: %v", downloadDir, err)
 		}
+	} else if err != nil {
+
+		return "", fmt.Errorf("检测目录 %s 时出错: %v\n", downloadDir, err)
+	} else {
+		fmt.Printf("目录 %s 已存在\n", downloadDir)
+		return downloadDir, nil
 	}
 
 	// 构造 git clone 命令
