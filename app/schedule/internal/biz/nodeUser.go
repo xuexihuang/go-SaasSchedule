@@ -7,11 +7,7 @@ type UserNode struct {
 }
 
 func (u *UserNode) generateInitSql() string {
-	return `|
-    CREATE TABLE user (
-      id INT PRIMARY KEY,
-      name VARCHAR(100)
-    );`
+	return `CREATE TABLE admin (id INT PRIMARY KEY,name VARCHAR(100));`
 }
 func (u *UserNode) generateSetCommand(domain string, imageTag string, tenantId string) ([]string, error) {
 

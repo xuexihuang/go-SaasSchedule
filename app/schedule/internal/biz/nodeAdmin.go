@@ -1,6 +1,9 @@
 package biz
 
-import "fmt"
+import (
+	"fmt"
+	log15 "github.com/xuexihuang/new_log15"
+)
 
 type AdminNode struct {
 	*NodeBase
@@ -8,20 +11,17 @@ type AdminNode struct {
 
 func (a *AdminNode) generateInitSql() string {
 
-	return `|
-    CREATE TABLE admin (
-      id INT PRIMARY KEY,
-      name VARCHAR(100)
-    );`
+	return `CREATE TABLE admin (id INT PRIMARY KEY,name VARCHAR(100));`
 }
 func (a *AdminNode) generateSetCommand(domain string, imageTag string, tenantId string) ([]string, error) {
 
 	ret := []string{"--set"}
 	var setStr string
 	sql := a.generateInitSql()
-	setStr = "sqlConfig.userSql=" + sql
+	setStr = "sqlConfig.sql=" + sql
 	mysqlUrl := fmt.Sprintf("root:123456@tcp(mysql.kube-public.svc.cluster.local:3306)/%s?charset=utf8mb4&parseTime=true", tenantId)
 	setStr = setStr + ",image.tag=" + imageTag + ",config.Mysql.Database=" + mysqlUrl
 	ret = append(ret, setStr)
+	log15.Info("generateSetCommand", "ret", ret)
 	return ret, nil
 }
