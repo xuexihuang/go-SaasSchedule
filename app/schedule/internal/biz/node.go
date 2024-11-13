@@ -16,7 +16,7 @@ import (
 )
 
 type NodeInter interface {
-	RunSchedule(jobId int64, chartUrl string, chartVersion string, domain string, imageTag string, tenantId string) error
+	RunSchedule(moduleId int64, jobId int64, chartUrl string, chartVersion string, domain string, imageTag string, tenantId string) error
 	generateInitSql() string
 	generateSetCommand(domain string, imageTag string, tenantId string) ([]string, error)
 }
@@ -54,11 +54,17 @@ type NodeBase struct {
 	nodeInter         NodeInter
 }
 
-func (n *NodeBase) installChart(domain string, imageTag string, tenantId string, chartPath string) error {
+func (n *NodeBase) CreateRecord(r *database.JobNodeRecord) (int64, error) {
+	return n.jobNodeRecordRepo.Create(r)
+}
+func (n *NodeBase) UpdateRecordStatus(id int64, status string) error {
+	return n.jobNodeRecordRepo.UpdateStatus(id, status)
+}
+func (n *NodeBase) installChart(domain string, imageTag string, tenantId string, chartPath string, moduleId int64, jobId int64) (int64, error) {
 	args, err := n.nodeInter.generateSetCommand(domain, imageTag, tenantId)
 	if err != nil {
 		log15.Error("generateSetCommand error")
-		return err
+		return 0, err
 	}
 	// 创建 helm install 命令
 	cmdArgs := append([]string{"install", n.moduleName, ".", "-f", "config.yaml", "--namespace", tenantId}, args...)
@@ -72,15 +78,21 @@ func (n *NodeBase) installChart(domain string, imageTag string, tenantId string,
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
 
+	//插入数据库
+	RecordId, err := n.CreateRecord(&database.JobNodeRecord{ModuleId: moduleId, JobId: jobId})
+	if err != nil {
+		return 0, err
+	}
 	// 运行命令并获取返回错误
 	err = cmd.Run()
 
 	log15.Info("cmd.Run", "err", err, "stderr", stderr.String(), "stdout", stdout.String())
 	// 返回标准输出、错误输出和执行错误
 	if err != nil {
-		return err
+		_ = n.UpdateRecordStatus(RecordId, "Error")
+		return 0, err
 	}
-	return nil
+	return RecordId, nil
 }
 func (n *NodeBase) checkChartReleaseStatus(tenantId string) (string, string, error) {
 
@@ -154,7 +166,7 @@ func (n *NodeBase) createK8sNamespace(tenantId string) error {
 	_, err := cmd.Output()
 	return err
 }
-func (n *NodeBase) RunSchedule(jobId int64, chartUrl string, chartVersion string, domain string, imageTag string, tenantId string) error {
+func (n *NodeBase) RunSchedule(moduleId int64, jobId int64, chartUrl string, chartVersion string, domain string, imageTag string, tenantId string) error {
 
 	chartPath, err := n.downChart(jobId, chartUrl, chartVersion)
 	if err != nil {
@@ -164,7 +176,7 @@ func (n *NodeBase) RunSchedule(jobId int64, chartUrl string, chartVersion string
 	if err != nil {
 		return err
 	}
-	err = n.installChart(domain, imageTag, tenantId, chartPath)
+	recordId, err := n.installChart(domain, imageTag, tenantId, chartPath, moduleId, jobId)
 	if err != nil {
 		return err
 	}
@@ -182,10 +194,10 @@ func (n *NodeBase) RunSchedule(jobId int64, chartUrl string, chartVersion string
 		}
 	}
 	if successCount >= 3 {
-		//插入数据库
+		_ = n.UpdateRecordStatus(recordId, "Running")
 		return nil
 	} else {
-		//插入数据库
+		_ = n.UpdateRecordStatus(recordId, "Error")
 		return errors.New("ChartReleaseStatus error")
 	}
 

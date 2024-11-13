@@ -39,7 +39,7 @@ func (l *StartTenantScheduleLogic) StartTenantSchedule(req *types.StartTenantSch
 	go func() { //异步进行自动化部署
 		for _, v := range modules {
 			nodeInter := biz.NewJobNodeInter(v.Name, req.ChartVersion, l.svcCtx)
-			err := nodeInter.RunSchedule(jobId, chartUrl, req.ChartVersion, req.Domain, req.ImageTag, req.TenantId)
+			err := nodeInter.RunSchedule(v.Id, jobId, chartUrl, req.ChartVersion, req.Domain, req.ImageTag, req.TenantId)
 			if err != nil {
 				log15.Error("RunSchedule error", "err", err)
 				break
