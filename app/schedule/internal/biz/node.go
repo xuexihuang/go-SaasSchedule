@@ -8,6 +8,7 @@ import (
 	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/data/database"
 	"github.com/xuexihuang/go-SaasSchedule/app/schedule/internal/svc"
 	log15 "github.com/xuexihuang/new_log15"
+	"gopkg.in/yaml.v2"
 	"os"
 	"os/exec"
 	"regexp"
@@ -18,7 +19,7 @@ import (
 type NodeInter interface {
 	RunSchedule(moduleId int64, jobId int64, chartUrl string, chartVersion string, domain string, imageTag string, tenantId string) error
 	generateInitSql() string
-	generateSetCommand(domain string, imageTag string, tenantId string) ([]string, error)
+	generateSetCommand(domain string, imageTag string, tenantId string) (interface{}, error)
 }
 
 type JobNodeRecordRepo interface {
@@ -61,13 +62,28 @@ func (n *NodeBase) UpdateRecordStatus(id int64, status string) error {
 	return n.jobNodeRecordRepo.UpdateStatus(id, status)
 }
 func (n *NodeBase) installChart(domain string, imageTag string, tenantId string, chartPath string, moduleId int64, jobId int64) (int64, error) {
-	args, err := n.nodeInter.generateSetCommand(domain, imageTag, tenantId)
+	c, err := n.nodeInter.generateSetCommand(domain, imageTag, tenantId)
 	if err != nil {
 		log15.Error("generateSetCommand error")
 		return 0, err
 	}
+	// 序列化为 YAML
+	data, err := yaml.Marshal(c)
+	if err != nil {
+		log15.Error("yaml.Marshal error", "err", err)
+		return 0, err
+	}
+	// 打印 YAML 输出
+	fmt.Println(string(data))
+	// 将 YAML 数据写入到文件
+	err = os.WriteFile(chartPath+"/"+n.moduleName+"/config.yaml", data, 0644)
+	if err != nil {
+		log15.Error("failed to write to file", "err", err)
+		return 0, err
+	}
+
 	// 创建 helm install 命令
-	cmdArgs := append([]string{"install", n.moduleName, n.moduleName + "/", "-f", n.moduleName + "/config.yaml", "--namespace", tenantId}, args...)
+	cmdArgs := []string{"install", n.moduleName, n.moduleName + "/", "-f", n.moduleName + "/config.yaml", "--namespace", tenantId}
 	cmd := exec.Command("helm", cmdArgs...)
 	// 设置当前工作目录为 /data/gitCharts
 	cmd.Dir = chartPath
