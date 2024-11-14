@@ -23,7 +23,7 @@ func (u *UserNode) generateSetCommand(domain string, imageTag string, tenantId s
 	c := UserConfig{}
 	c.Ingress.Enabled = true
 	c.Ingress.Hosts = make([]*Hosts, 1)
-	c.Ingress.Hosts[0] = &Hosts{Host: domain, Paths: []*Paths{&Paths{Path: "/user(/|$)(.*)", PathType: "ImplementationSpecific"}}}
+	c.Ingress.Hosts[0] = &Hosts{Host: domain, Paths: []*Paths{&Paths{Path: "/userapi(/|$)(.*)", PathType: "ImplementationSpecific"}}}
 	c.Image.Tag = imageTag
 	c.Config.Host = "0.0.0.0:80"
 	c.Config.Port = 80

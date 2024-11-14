@@ -42,6 +42,12 @@ func NewJobNodeInter(moduleName string, chartVersion string, svcCtx *svc.Service
 		data.jobNodeRecordRepo = svcCtx.JobNodeRecord
 		data.nodeInter = data
 		ret = data
+	} else if moduleName == "game" {
+		data := &GameNode{NodeBase: &NodeBase{}}
+		data.moduleName = "game"
+		data.jobNodeRecordRepo = svcCtx.JobNodeRecord
+		data.nodeInter = data
+		ret = data
 	} else {
 		log15.Error("not find module impliment")
 		return nil
@@ -244,6 +250,7 @@ func (n *NodeBase) RunSchedule(moduleId int64, jobId int64, chartUrl string, cha
 	if successCount >= 3 {
 		err = n.UpdateRecordStatus(recordId, "Running")
 		log15.Info("UpdateRecordStatus", "err", err)
+		log15.Info("恭喜你成功部署了saas系统！\n")
 		return nil
 	} else {
 		err = n.UpdateRecordStatus(recordId, "Error")
