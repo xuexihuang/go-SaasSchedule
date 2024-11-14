@@ -48,6 +48,9 @@ type Hosts struct {
 	Host  string   `yaml:"host"`
 	Paths []*Paths `yaml:"paths"`
 }
+type SqlConfig struct {
+	Sql string `yaml:"sql"`
+}
 
 // 定义结构体
 type UserConfig struct {
@@ -65,12 +68,10 @@ type UserConfig struct {
 			DataSource string `yaml:"Port"`
 		}
 	}
-	SqlConfig struct {
-		Sql string `yaml:"sql"`
-	}
+	SqlConfig SqlConfig `yaml:"sqlConfig"`
 }
 
-func main2() {
+func main33() {
 	c := UserConfig{}
 	c.Ingress.Enabled = true
 	c.Ingress.Hosts = make([]*Hosts, 1)

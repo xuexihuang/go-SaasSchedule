@@ -8,6 +8,9 @@ type Hosts struct {
 	Host  string   `yaml:"host"`
 	Paths []*Paths `yaml:"paths"`
 }
+type SqlConfig struct {
+	Sql string `yaml:"sql"`
+}
 
 // 定义结构体
 type UserConfig struct {
@@ -19,13 +22,11 @@ type UserConfig struct {
 		Hosts   []*Hosts `yaml:"hosts"`
 	}
 	Config struct {
-		Host  string `yaml:"Host"`
-		Port  int    `yaml:"Port"`
+		Host  string `yaml:"host"`
+		Port  int    `yaml:"port"`
 		Mysql struct {
-			DataSource string `yaml:"Port"`
+			DataSource string `yaml:"dataSource"`
 		}
 	}
-	SqlConfig struct {
-		Sql string `yaml:"sql"`
-	}
+	SqlConfig SqlConfig `yaml:"sqlConfig"`
 }
